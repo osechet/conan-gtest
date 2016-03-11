@@ -31,6 +31,9 @@ class GTestConan(ConanFile):
         except OSError:
             pass
 
+        if self.settings.os != "Windows":
+            self.options.shared = False
+
         cd_build = "cd _build"
         force = "-Dgtest_force_shared_crt=ON"
         shared = "-DBUILD_SHARED_LIBS=1" if self.options.shared else ""
@@ -54,5 +57,5 @@ class GTestConan(ConanFile):
         if self.settings.os == "Linux":
             self.cpp_info.libs.append("pthread")
         
-        if self.options.shared:
+        if self.options.shared and self.settings.os == "Windows":
             self.cpp_info.defines.append("GTEST_LINKED_AS_SHARED_LIBRARY=1")
