@@ -7,29 +7,30 @@ from conans import CMake
 
 class GTestConan(ConanFile):
     name = "gtest"
-    version = "1.7.0"
-    ZIP_FOLDER_NAME = "gtest-%s" % version
+    version = "master"
+    ZIP_FOLDER_NAME = "googletest-%s" % version
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
     options = {"shared": [True, False]}
     default_options = "shared=True"
-    exports = "CMakeLists.txt"
-    url="http://github.com/lasote/conan-gtest"
+    url="http://github.com/smspillaz/conan-gtest"
     license="https://github.com/google/googletest/blob/master/googletest/LICENSE"
+    exports = ["CMakeLists.txt"]
 
     def source(self):
         zip_name = "gtest-%s.zip" % self.version
-        url = "https://googletest.googlecode.com/files/%s" % zip_name
+        url = "https://github.com/google/googletest/archive/master.zip"
         download(url, zip_name)
         unzip(zip_name)
         os.unlink(zip_name)
 
     def build(self):
         cmake = CMake(self.settings)
-        if self.settings.os == "Windows":
-            self.run("IF not exist _build mkdir _build")
-        else:
-            self.run("mkdir _build")
+        try:
+            os.makedirs("_build")
+        except OSError:
+            pass
+
         cd_build = "cd _build"
         force = "-Dgtest_force_shared_crt=ON"
         shared = "-DBUILD_SHARED_LIBS=1" if self.options.shared else ""
@@ -38,7 +39,8 @@ class GTestConan(ConanFile):
 
     def package(self):
         # Copying headers
-        self.copy(pattern="*.h", dst="include", src="%s/include" % self.ZIP_FOLDER_NAME, keep_path=True)
+        self.copy(pattern="*.h", dst="include", src="%s/googlemock/include" % self.ZIP_FOLDER_NAME, keep_path=True)
+        self.copy(pattern="*.h", dst="include", src="%s/googletest/include" % self.ZIP_FOLDER_NAME, keep_path=True)
 
         # Copying static and dynamic libs
         self.copy(pattern="*.a", dst="lib", src=".", keep_path=False)
@@ -48,7 +50,7 @@ class GTestConan(ConanFile):
         self.copy(pattern="*.dylib*", dst="lib", src=".", keep_path=False)      
 
     def package_info(self):
-        self.cpp_info.libs = ['gtest', 'gtest_main']
+        self.cpp_info.libs = ['gtest', 'gtest_main', 'gmock', 'gmock_main']
         if self.settings.os == "Linux":
             self.cpp_info.libs.append("pthread")
         
