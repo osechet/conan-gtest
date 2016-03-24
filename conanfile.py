@@ -17,6 +17,12 @@ class GTestConan(ConanFile):
     license="https://github.com/google/googletest/blob/master/googletest/LICENSE"
     exports = ["CMakeLists.txt"]
 
+    def config(self):
+        try:  # Try catch can be removed when conan 0.8 is released
+            del self.settings.compiler.libcxx
+        except:
+            pass
+
     def source(self):
         zip_name = "gtest-%s.zip" % self.version
         url = "https://github.com/google/googletest/archive/master.zip"
